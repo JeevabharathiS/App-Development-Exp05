@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Data Viewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>JSON Data Viewer</h1>
+        <ul id="data-list"></ul>
+        <form id="add-form">
+            <input type="text" id="name" placeholder="Enter item name" required>
+            <button type="submit">Add Item</button>
+        </form>
+    </div>
+    <script>
+        async function fetchData() {
+            const response = await fetch('/data');
+            const data = await response.json();
+            const list = document.getElementById('data-list');
+            list.innerHTML = data.map(item => `
+                <li>
+                    ${item.name}
+                    <span class="remove-btn" onclick="removeItem(${item.id})">X</span>
+                </li>
+            `).join('');
+        }
+        
+        async function removeItem(id) {
+            const response = await fetch(`/delete/${id}`, {
+                method: 'DELETE'
+            });
+            if (response.ok) {
+                fetchData();
+            }
+        }
+
+        document.getElementById('add-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const response = await fetch('/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name })
+            });
+            if (response.ok) {
+                fetchData();
+                document.getElementById('name').value = '';
+            }
+        });
+
+        fetchData();
+    </script>
+</body>
+</html>
